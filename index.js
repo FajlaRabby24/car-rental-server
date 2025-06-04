@@ -43,6 +43,7 @@ const run = async () => {
     const database = client.db("Car-Rental");
     const carCollection = database.collection("cars");
 
+    // add card
     app.post("/add-car", verifyToken, async (req, res) => {
       const email = req.query.email;
       const tokenEamil = await req?.tokenEmail?.email;
@@ -51,6 +52,18 @@ const run = async () => {
       }
       const newCar = req.body;
       const result = await carCollection.insertOne(newCar);
+      res.send(result);
+    });
+
+    // my car
+    app.get("/my-cars", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      const tokenEamil = await req?.tokenEmail?.email;
+      if (email !== tokenEamil) {
+        res.status(403).send({ message: "forbidden access!" });
+      }
+      const query = { owner: email };
+      const result = await carCollection.find(query).toArray();
       res.send(result);
     });
 
