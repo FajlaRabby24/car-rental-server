@@ -106,14 +106,14 @@ const run = async () => {
     // booking
     app.post("/booking/:id", verifyToken, async (req, res) => {
       const email = req.query.email;
-      const carId = req.params.id;
 
-      const newBooking = req.body;
       const tokenEamil = await req?.tokenEmail?.email;
       if (email !== tokenEamil) {
         res.status(403).send({ message: "forbidden access!" });
       }
+      const carId = req.params.id;
 
+      const newBooking = req.body;
       const filter = { _id: new ObjectId(carId) };
       const updatedDoc = {
         $inc: {
@@ -124,6 +124,18 @@ const run = async () => {
 
       // result
       const result = await bookingCollection.insertOne(newBooking);
+      res.send(result);
+    });
+
+    // my-booking page data
+    app.get("/my-bookings", verifyToken, async (req, res) => {
+      const tokenEamil = await req?.tokenEmail?.email;
+      const email = req.query.email;
+      if (email !== tokenEamil) {
+        res.status(403).send({ message: "forbidden access!" });
+      }
+      // result
+      const result = await bookingCollection.find({ email }).toArray();
       res.send(result);
     });
 
