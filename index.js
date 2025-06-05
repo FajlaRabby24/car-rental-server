@@ -42,6 +42,7 @@ const run = async () => {
   try {
     const database = client.db("Car-Rental");
     const carCollection = database.collection("cars");
+    const bookingCollection = database.collection("bookings");
 
     // add card
     app.post("/add-car", verifyToken, async (req, res) => {
@@ -99,6 +100,30 @@ const run = async () => {
     app.get("/car/:id", async (req, res) => {
       const id = req.params.id;
       const result = await carCollection.findOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+    // booking
+    app.post("/booking/:id", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      const carId = req.params.id;
+
+      const newBooking = req.body;
+      const tokenEamil = await req?.tokenEmail?.email;
+      if (email !== tokenEamil) {
+        res.status(403).send({ message: "forbidden access!" });
+      }
+
+      const filter = { _id: new ObjectId(carId) };
+      const updatedDoc = {
+        $inc: {
+          bookingCount: 1,
+        },
+      };
+      const car = await carCollection.updateOne(filter, updatedDoc);
+
+      // result
+      const result = await bookingCollection.insertOne(newBooking);
       res.send(result);
     });
 
