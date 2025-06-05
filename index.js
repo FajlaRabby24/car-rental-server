@@ -86,6 +86,15 @@ const run = async () => {
       res.send(result);
     });
 
+    // availables car
+    app.get("/available-cars", async (req, res) => {
+      const query = {
+        availability: `available`,
+      };
+      const result = await carCollection.find(query).toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment.");
   } finally {
