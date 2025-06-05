@@ -95,6 +95,13 @@ const run = async () => {
       res.send(result);
     });
 
+    // car details
+    app.get("/car/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await carCollection.findOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment.");
   } finally {
