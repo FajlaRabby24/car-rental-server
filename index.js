@@ -159,6 +159,19 @@ const run = async () => {
       res.send(result);
     });
 
+    // update booking status
+    app.put("/booking-cancel/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedCar = req.body;
+
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: updatedCar,
+      };
+      const result = await bookingCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment.");
   } finally {
