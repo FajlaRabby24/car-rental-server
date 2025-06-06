@@ -13,6 +13,7 @@ admin.initializeApp({
 app.use(cors());
 app.use(express.json());
 
+// verifyToken
 const verifyToken = async (req, res, next) => {
   const token = req?.headers?.authorization?.split(" ")[1];
   if (!token) {
@@ -43,6 +44,18 @@ const run = async () => {
     const database = client.db("Car-Rental");
     const carCollection = database.collection("cars");
     const bookingCollection = database.collection("bookings");
+
+    // recent list
+    app.get("/recent-list", async (req, res) => {
+      const cars = (await carCollection.find().toArray()).sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB - dateA;
+      });
+
+      const recentCars = cars.slice(0, 6);
+      res.send(recentCars);
+    });
 
     // add card
     app.post("/add-car", verifyToken, async (req, res) => {
