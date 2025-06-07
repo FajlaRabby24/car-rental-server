@@ -185,6 +185,19 @@ const run = async () => {
       res.send(result);
     });
 
+    // car search
+    app.get("/car", async (req, res) => {
+      const searchQuery = req.query?.search;
+      const result = await carCollection
+        .find({
+          model: {
+            $regex: new RegExp(searchQuery, "i"), // "i" => case-insensitive
+          },
+        })
+        .toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment.");
   } finally {
