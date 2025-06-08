@@ -2,9 +2,13 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const app = express();
+require("dotenv").config();
 const port = process.env.PORT || 5000;
 const admin = require("firebase-admin");
-const serviceAccount = require("./firebase.private.key.json");
+const decoded = Buffer.from(process.env.FB_SECRED_KEY, "base64").toString(
+  "utf-8"
+);
+const serviceAccount = JSON.parse(decoded);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -28,7 +32,9 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-const uri = `mongodb://localhost:27017`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hc2cnk7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+// const uri = `mongodb://localhost:27017`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
