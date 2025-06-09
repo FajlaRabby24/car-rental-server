@@ -32,6 +32,17 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
+// validate email
+const validateEmal = async (req, res, next) => {
+  const email = req?.query?.email;
+  const tokenEamil = await req?.tokenEmail?.email;
+  if (email !== tokenEamil) {
+    return res.status(403).send({ message: "forbidden access!" });
+  }
+  req.email = email;
+  next();
+};
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hc2cnk7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // const uri = `mongodb://localhost:27017`;
@@ -64,25 +75,15 @@ const run = async () => {
     });
 
     // add card
-    app.post("/add-car", verifyToken, async (req, res) => {
-      const email = req.query.email;
-      const tokenEamil = await req?.tokenEmail?.email;
-      if (email !== tokenEamil) {
-        res.status(403).send({ message: "forbidden access!" });
-      }
+    app.post("/add-car", verifyToken, validateEmal, async (req, res) => {
       const newCar = req.body;
       const result = await carCollection.insertOne(newCar);
       res.send(result);
     });
 
     // my car
-    app.get("/my-cars", verifyToken, async (req, res) => {
-      const email = req.query.email;
-      const tokenEamil = await req?.tokenEmail?.email;
-      if (email !== tokenEamil) {
-        res.status(403).send({ message: "forbidden access!" });
-      }
-      const query = { owner: email };
+    app.get("/my-cars", verifyToken, validateEmal, async (req, res) => {
+      const query = { owner: req.email };
       const result = await carCollection.find(query).toArray();
       res.send(result);
     });
@@ -123,15 +124,8 @@ const run = async () => {
     });
 
     // booking
-    app.post("/booking/:id", verifyToken, async (req, res) => {
-      const email = req.query.email;
-
-      const tokenEamil = await req?.tokenEmail?.email;
-      if (email !== tokenEamil) {
-        res.status(403).send({ message: "forbidden access!" });
-      }
+    app.post("/booking/:id", verifyToken, validateEmal, async (req, res) => {
       const carId = req.params.id;
-
       const newBooking = req.body;
       const filter = { _id: new ObjectId(carId) };
       const updatedDoc = {
@@ -147,36 +141,32 @@ const run = async () => {
     });
 
     // my-booking page data
-    app.get("/my-bookings", verifyToken, async (req, res) => {
-      const tokenEamil = await req?.tokenEmail?.email;
-      const email = req.query.email;
-      if (email !== tokenEamil) {
-        res.status(403).send({ message: "forbidden access!" });
-      }
+    app.get("/my-bookings", verifyToken, validateEmal, async (req, res) => {
       // result
-      const result = await bookingCollection.find({ email }).toArray();
+      const result = await bookingCollection
+        .find({ email: req.email })
+        .toArray();
       res.send(result);
     });
 
     // update booking info
-    app.patch("/update-booking/:id", verifyToken, async (req, res) => {
-      const tokenEamil = await req?.tokenEmail?.email;
-      const email = req.query.email;
-      if (email !== tokenEamil) {
-        res.status(403).send({ message: "forbidden access!" });
+    app.patch(
+      "/update-booking/:id",
+      verifyToken,
+      validateEmal,
+      async (req, res) => {
+        const id = req.params.id;
+        const { startDate, endDate, totalPrice } = req.body;
+
+        const filter = { _id: new ObjectId(id) };
+        const updatedDoc = {
+          $set: { startDate, endDate, totalPrice },
+        };
+
+        const result = await bookingCollection.updateOne(filter, updatedDoc);
+        res.send(result);
       }
-
-      const id = req.params.id;
-      const { startDate, endDate, totalPrice } = req.body;
-
-      const filter = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: { startDate, endDate, totalPrice },
-      };
-
-      const result = await bookingCollection.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
+    );
 
     // update booking status
     app.put("/booking-cancel/:id", async (req, res) => {
