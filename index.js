@@ -70,7 +70,7 @@ const run = async () => {
         return dateB - dateA;
       });
 
-      const recentCars = cars.slice(0, 6);
+      const recentCars = cars.slice(0, 8);
       res.send(recentCars);
     });
 
